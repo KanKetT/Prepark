@@ -56,60 +56,40 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println("Failed to obtain time");
   }
 
-  char timeAll[20];
-  char timeMonth[10];
-  char timeDay[3];
-  char timeYear[5];
-  char timeHour[3];
-  char timeMin[3];
-  char timeSec[3];
+  char  date_time_All[40];
 
-  strftime(timeMonth, 10, "%B", &timeinfo);
-  strftime(timeDay, 3, "%d", &timeinfo);
-  strftime(timeYear, 5, "%Y", &timeinfo);
-  strftime(timeHour, 3, "%H", &timeinfo);
-  strftime(timeMin, 3, "%M", &timeinfo);
-  strftime(timeSec, 5, "%S", &timeinfo);
-
-  strcat(timeAll, timeYear);
-  strcat(timeAll, timeMonth);
-  strcat(timeAll, timeDay);
-
-  Serial.println(timeAll);
-  Serial.println(timeMonth);
-  Serial.println(timeDay);
-  Serial.println(timeYear);
-  Serial.println(timeHour);
-  Serial.println(timeMin);
-  Serial.println(timeSec);
+  strftime(date_time_All,40,"%d%B%Y %H:%M:%S", &timeinfo);
+  
+  Serial.println(date_time_All);
 
   payload[length] = '\0';
   String topic_str = topic, payload_str = (char*)payload;
   Serial.println("[" + topic_str + "]: " + payload_str);
 
-  //  mqtt.publish("device_status/All", timeAll);
-  mqtt.publish("device_status/Month", timeMonth);
-  mqtt.publish("device_status/Day", timeDay);
-  mqtt.publish("device_status/Year", timeYear);
-  mqtt.publish("device_status/Hour", timeHour);
-  mqtt.publish("device_status/Min", timeMin);
-  mqtt.publish("device_status/Sec", timeSec);
+  
+
   Serial.println((payload_str == "ON") ? "HIGH" : "LOW");
 
   // code start
   if (payload_str == "ON") {
+    strftime(date_time_All,40,"%d%B%Y %H:%M:%S ON", &timeinfo);
+    mqtt.publish("device_status/all", date_time_All);
     CCW_motor(256);
     delay(2800);
     stop_motor();
   }
 
   if (payload_str == "OFF") {
+     strftime(date_time_All,40,"%d%B%Y %H:%M:%S OFF", &timeinfo);
+     mqtt.publish("device_status/all", date_time_All);
      CW_motor(256);
      delay(2800);
      stop_motor();
   }
 
   if (payload_str == "unlock") {
+      strftime(date_time_All,40,"%d%B%Y %H:%M:%S unlock", &timeinfo);
+      mqtt.publish("device_status/all", date_time_All);
       unlock_status = 0;
       CW_motor(256);
       delay(2800);
