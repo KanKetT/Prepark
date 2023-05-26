@@ -1,0 +1,104 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+    <title>API</title>
+    <script>
+        client = new Paho.MQTT.Client("broker.mqttdashboard.com", Number(8884), "StartUpKMITL_web_client_control");
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+
+        client.connect({userName:"startuptest1", password:"Startuptest1",useSSL:true,onSuccess:onConnect,onFailure:onConnectionLost});
+
+        
+
+        function onConnect(){
+            // topic =  document.getElementById("topic_s").value;
+            topic = "device_status/all"
+            client.subscribe(topic);
+            console.log("Connect successfully");
+            console.log("Subscribe to :" + topic);
+
+        }
+        function onConnectionLost(responseObject){
+            console.log("Connection lost");
+            if(responseObject !=0){
+                consol.log("ERROR :" + responseObject.errorMessage);
+            }
+        }
+        function onMessageArrived(message){
+            console.log("TOPIC:" + message.destinationName);
+            console.log("OnMessageArrived: "+message.payloadString);
+
+            if (message.destinationName == "device_status/all"){
+                var myMsg = message.payloadString.split(" ");
+                console.log("date=", myMsg[0]);
+                console.log("time=", myMsg[1]);
+                console.log("order=", myMsg[2]);
+                var date = myMsg[0];
+                var time = myMsg[1];
+                var order = myMsg[2];
+                toSHEET(date,time,order);
+            }
+
+        }
+
+        function startDisconnect(){
+            client.disconnect();
+            console.log("Disconnected");
+        }
+
+        function publishMessage(msg){
+        
+        topic = "device_status/command";
+        Message = new Paho.MQTT.Message(msg);
+        Message.destinationName = topic;
+        client.send(Message);
+        console.log("TOPIC:" + topic + "PUBLISH:" + msg);
+        }
+
+        function pubON(){
+            publishMessage("ON");
+        }
+
+        function pubOFF(){
+            publishMessage("OFF");
+        }
+
+        function unlock(){
+            publishMessage("unlock");
+        }
+
+
+
+        function toSHEET(date, time, order){
+          fetch("https://script.google.com/macros/s/AKfycbxd9o8xD0KMJS6tF8uAq_BtIjaOkWjxZA-D2AjhqnNZdsHlBAZ0UPpFzDLFFek4RIzKTQ/exec?date=" + date + "&time=" + time + "&order=" + order);
+        }
+
+        // https://script.google.com/macros/s/AKfycbwzJYi0n9KNGOF76y74p50LA01fzCnsRobzc4MRsRslTFM4HqxaPGJs1hks2WU4Ddke-A/exec?date=5May2023&time=14:45:33
+        
+    </script>
+    <style>
+        input{
+            margin-top: 300px;
+            padding: 10px 20px;
+            margin-right: 5px;
+            border: 3px solid gray;
+            border-radius: 8px;
+        }
+        input:hover{
+            background-color: lightgray;
+        }
+    </style>
+</head>
+<body>
+<center>
+    <input type="button" value="ON" onclick="pubON()">
+    <input type="button" value="OFF" onclick="pubOFF()">
+    <input type="button" value="UNLOCK" onclick="unlock()">
+</center>
+
+</body>
+</html>
